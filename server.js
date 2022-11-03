@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { env } from "./config.js";
 import User from "./models/User.js";
 import bcrypt from "bcryptjs";
-import './db-connect.js' // connect to DB
+import "./db-connect.js"; // connect to DB
 
 const app = express();
 
@@ -18,58 +18,58 @@ app.get("/", (req, res) => {
 });
 
 app.post("/signup", async (req, res, next) => {
-
   try {
-
-    const { email, password } = req.body
-    if(!email || !password) {
-      const err = new Error("Please provide credentials email & password")
-      err.status = 400
-      return next(err)
+    const { email, password } = req.body;
+    if (!email || !password) {
+      const err = new Error("Please provide credentials email & password");
+      err.status = 400;
+      return next(err);
     }
 
     // check if user already exists
-    const userExists = await User.findOne({ email })
-    if(userExists) {
-      const err = new Error("User already exists! But thank you for your support...");
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      const err = new Error(
+        "User already exists! But thank you for your support..."
+      );
       err.status = 400;
-      return next(err)
+      return next(err);
     }
 
     // hash password
-    req.body.password = bcrypt.hashSync(req.body.password)
-    const user = await User.create(req.body)
-    res.json(user)
-  }
-  catch(err) {
-    err.status = 400
-    next(err)
+    req.body.password = bcrypt.hashSync(req.body.password);
+    const user = await User.create(req.body);
+    res.json(user);
+  } catch (err) {
+    err.status = 400;
+    next(err);
   }
 });
 
 // indentify user
 // create / issue a token
 app.post("/login", async (req, res, next) => {
+  const { email, password } = req.body;
 
-  const { email, password } = req.body
-
-  const userFound = await User.findOne({ email: email })
+  const userFound = await User.findOne({ email: email });
 
   // user with email does not exist?
   // password does not match?
-  if(!userFound || !bcrypt.compareSync(password, userFound.password)) {
-    const err = new Error("User not found")
-    err.status = 400
-    return next(err)
+  if (!userFound || !bcrypt.compareSync(password, userFound.password)) {
+    const err = new Error("User not found");
+    err.status = 400;
+    return next(err);
   }
 
-  // user credentials match 
+  // user credentials match
   // => create a JWT token (=ticket)
-  let token = jwt.sign({ _id: userFound._id }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRY });
+  let token = jwt.sign({ _id: userFound._id }, env.JWT_SECRET, {
+    expiresIn: env.JWT_EXPIRY,
+  });
 
   res.json({
     user: userFound,
-    token
+    token,
   });
 });
 
@@ -79,7 +79,7 @@ const authenticate = (req, res, next) => {
 
   if (!token) {
     // throw new Error("You dont have a token!")
-    const err = new Error("You do not have a token! Get outta herrreeee!")
+    const err = new Error("You do not have a token! Get outta herrreeee!");
     err.status = 401;
     return next(err);
   }
@@ -90,7 +90,7 @@ const authenticate = (req, res, next) => {
     req.user = userDecoded; // store user info in request
     next(); // forward user to desired destination
   } catch (err) {
-    err.status = 401
+    err.status = 401;
     next(err);
   }
 };
@@ -105,8 +105,6 @@ app.get("/secret", authenticate, (req, res) => {
 // protected route
 // data only available if logged in
 app.get("/todos", authenticate, (req, res) => {
-  console.log(req.user);
-
   const todos = [
     { _id: "t1", text: "Show some auth intro", userId: "u1" },
     {
